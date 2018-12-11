@@ -1,7 +1,7 @@
-Terraform AWS module for EKS master node bootstrap
-==================================================
+Terraform AWS module for S3 encrypted bucket with logging
+==================================================================================
 
-Generic repository for a terraform module for AWS EKS control plane (managed master nodes) bootstrap
+Generic repository for a terraform module for AWS S3 encrypted Bucket (via AWS KMS key) with access logging enabled
 
 ![Image of Terraform](https://i.imgur.com/Jj2T26b.jpg)
 
@@ -17,29 +17,20 @@ Generic repository for a terraform module for AWS EKS control plane (managed mas
 
 # Intro
 
-Module to bootstrap control plan of a AWS EKS cluster with the following details:
-- AWS
+Module that creates:
+- KMS key (and respective alias) to encrypt the bucket contents
+- S3 bucket pointing to another S3 bucket where it stores access logs
+
+Optionally:
+- Enable versioning in bucket
+- enable lifecycle rules to move objects to cheaper storage options, such as S3 IA or Glacier
+
 
 # Usage
 
 Example usage:
 
 ```hcl
-
-module "eks_masters" {
-  source                      = "github.com/diogoaurelio/terraform-module-aws-compute-eks-cluster-control-plane"
-  version                     = "v0.0.1"
-
-  vpc_id                      = "vpc-123"
-  aws_region                  = "eu-west-1"
-  cluster_name                = "eks"
-  environment                 = "dev"
-  master_subnet_ids           = ["subnet-12345678"]
-  master_ingress_cidr         = ["10.10.0.1/24"]
-  project                     = "analytics"
-  account_id                  = "${data.aws_caller_identity.current.account_id}"
-}
-
 module "dev_s3_encrypted" {
   source                            = "github.com/diogoaurelio/terraform-module-aws-storage-s3-logging-encrypted"
   version                           = "v0.0.1"
@@ -51,6 +42,7 @@ module "dev_s3_encrypted" {
   s3_bucket_name                    = "mybucket"
   s3_bucket_acl                     = "private"
   kms_key_alias                     = "${var.science_dev_env}-${var.project}-mybucket-key"
+  target_bucket_id                  = "access-logs-storing-bucket"
   versioning_enabled                = true
   transition_lifecycle_rule_enabled = false
   expiration_lifecycle_rule_enabled = false
