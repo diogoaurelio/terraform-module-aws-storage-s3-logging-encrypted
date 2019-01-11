@@ -40,6 +40,10 @@ variable "versioning_enabled" {
   default = false
 }
 
+variable "mfa_delete_enabled" {
+  default = true
+}
+
 variable "target_bucket_id" {
   description = "Target bucket to push logs to"
 }
